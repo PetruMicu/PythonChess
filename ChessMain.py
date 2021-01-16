@@ -14,9 +14,9 @@ WIDTH = 512
 BOARD_SIZE = 8
 SQ_SIZE = HEIGHT // BOARD_SIZE
 FPS = 15  # frameRate for the animation
-colors = [p.Color("white"), p.Color("dark gray")]
+colors = [p.Color("white"), p.Color(54, 131, 31, 200)]
 IMG = {}  # dictionary containing the images
-highlight_colors = [p.Color("yellow"), p.Color("green")]
+highlight_colors = [p.Color(244, 241, 174, 155), p.Color(173, 227, 156, 155)]
 
 def loadIMG():
     pieces = ('bR', 'bN', 'bB', 'bQ', 'bK', 'bP', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wP')
