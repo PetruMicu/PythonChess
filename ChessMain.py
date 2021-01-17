@@ -31,6 +31,8 @@ def main():
     time = p.time.Clock()
     window.fill(p.Color("black"))
     gamestate = ChessEngine.Game()
+    validMoves = gamestate.getValidMoves()
+    move_made = False
     loadIMG()
     loop = True
     squareSelected = ()  # this tuple holds the last click that was made (col,row)
@@ -47,13 +49,13 @@ def main():
                 # map the cursor position to dimensions needed for the board
                 row = cursorposition[1] // SQ_SIZE
                 col = cursorposition[0] // SQ_SIZE
-                if squareSelected == (col, row):  # player clicked the same sq twice
+                if squareSelected == (row-1, col):  # player clicked the same sq twice
                     # clears the clicks
                     highlight = False
                     squareSelected = ()
                     clicks = []
                 else:
-                    squareSelected = (col, row)
+                    squareSelected = (row-1, col)
                     clicks.append(squareSelected)  # adds the last click
                 if len(clicks) == 1:  # player selected a piece, so highlight it
                     if row == 0 or row == 9:
@@ -68,7 +70,9 @@ def main():
                         clicks = []
                 if len(clicks) == 2:
                     move = ChessEngine.Move(clicks[0], clicks[1], gamestate.board)
-                    gamestate.makeMove(move)
+                    if move in validMoves:
+                        gamestate.makeMove(move)
+                        move_made = True
                     highlight = False
                     clicks = []
                     squareSelected = []
@@ -78,7 +82,9 @@ def main():
                 clicks = []
                 squareSelected = []
 
-        drawBoard(window, gamestate, highlight, col, row)
+        if move_made:
+            validMoves = gamestate.getValidMoves()
+        drawBoard(window, gamestate, highlight, col, row-1)
         time.tick(FPS)
         p.display.flip()
 
@@ -86,7 +92,7 @@ def main():
 def drawBoard(window, gamestate, highlight, highlight_col, highlight_row):
     for i in range(BOARD_SIZE):
         for j in range(BOARD_SIZE):
-            if highlight_row == i+1 and highlight_col == j and highlight and gamestate.board[i][j] != "**":
+            if highlight_row == i and highlight_col == j and highlight and gamestate.board[i][j] != "**":
                 if (i+j) % 2 == 1:
                     p.draw.rect(window, highlight_colors[1], p.Rect(j*SQ_SIZE, (i+1)*SQ_SIZE, SQ_SIZE, SQ_SIZE))
                 else:
