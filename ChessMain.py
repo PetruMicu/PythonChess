@@ -67,9 +67,16 @@ def main():
                         squareSelected = ()
                         clicks = []
                 if len(clicks) == 2:
+                    move = ChessEngine.Move(clicks[0], clicks[1], gamestate.board)
+                    gamestate.makeMove(move)
                     highlight = False
                     clicks = []
                     squareSelected = []
+            elif e.type == p.KEYDOWN and e.key == p.K_z:
+                gamestate.moveBack()
+                highlight = False
+                clicks = []
+                squareSelected = []
 
         drawBoard(window, gamestate, highlight, col, row)
         time.tick(FPS)
