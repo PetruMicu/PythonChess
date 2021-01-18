@@ -31,6 +31,8 @@ def main():
     time = p.time.Clock()
     window.fill(p.Color("black"))
     gamestate = ChessEngine.Game()
+    validMoves = gamestate.getValidMoves()
+    move_made = False
     loadIMG()
     loop = True
     squareSelected = ()  # this tuple holds the last click that was made (col,row)
@@ -68,11 +70,20 @@ def main():
                         clicks = []
                 if len(clicks) == 2:
                     move = ChessEngine.Move(clicks[0], clicks[1], gamestate.board)
-                    gamestate.makeMove(move)
+                    if move in validMoves:
+                        gamestate.makeMove(move)
+                        move_made = True
                     highlight = False
                     clicks = []
                     squareSelected = []
+            elif e.type == p.KEYDOWN and e.key == p.K_z:
+                gamestate.moveBack()
+                highlight = False
+                clicks = []
+                squareSelected = []
 
+        if move_made:
+            validMoves = gamestate.getValidMoves()
         drawBoard(window, gamestate, highlight, col, row-1)
         time.tick(FPS)
         p.display.flip()
