@@ -19,6 +19,11 @@ class Game:
     def makeMove(self, move):
         # checks if the right piece was selected (white while white's turn or black while black's turn)
         if (self.whiteTurn and move.moved_piece[0] == 'w') or (not self.whiteTurn and move.moved_piece[0] == 'b'):
+            if move.moved_piece[1] == 'P':  # if the moved piece is a pawn and has reached the back rank
+                if (move.moved_piece[0] == 'w' and move.end_row == 0) or \
+                        (move.moved_piece[0] == 'b' and move.end_row == 7):
+                    move.moved_piece = move.moved_piece[0] + 'Q'  # pawn becomes a queen
+                    move.promote = True
             self.board[move.end_row][move.end_col] = move.moved_piece
             self.board[move.start_row][move.start_col] = "**"
             self.whiteTurn = not self.whiteTurn  # change player's turn
@@ -28,6 +33,8 @@ class Game:
     def moveBack(self):  # undoes the last move
         if len(self.moveLog) != 0:  # checks to see if a move has been made
             move = self.moveLog.pop()
+            if move.promote:
+                move.moved_piece = move.moved_piece[0] + 'P'
             self.board[move.start_row][move.start_col] = move.moved_piece
             self.board[move.end_row][move.end_col] = move.captured_piece  # if no piece captured restores blank
             self.whiteTurn = not self.whiteTurn  # changes player's turn
@@ -80,16 +87,42 @@ class Game:
             value = 1
         if self.board[row + value][col] == '**':  # square in front of pawn is empty
             movelist.append(Move((row, col), (row + value, col), self.board))
+        '''Pawn capture moves'''
         if col != 0:
-            if self.board[row + value][col - 1] != '**':  # pawn can capture a piece to it's left
+            if self.board[row + value][col - 1] != '**' and self.board[row + value][col - 1][0] != piece_color:  # pawn can capture a piece to it's left
                 movelist.append(Move((row, col), (row + value, col - 1), self.board))
         if col != 7:
-            if self.board[row + value][col + 1] != '**':  # pawn can capture a piece to it's right
+            if self.board[row + value][col + 1] != '**' and self.board[row + value][col - 1][0] != piece_color:  # pawn can capture a piece to it's right
                 movelist.append(Move((row, col), (row + value, col + 1), self.board))
             # do en passant move later if there's time left
 
     def generateRookMoves(self, row, col, movelist):
-        pass
+        piece_color = self.board[row][col][0]
+        if row + 1 < len(self.board):  # rook can move down the board
+            for i in range(row + 1, len(self.board)):
+                '''Check to see if piece is the same color'''
+                if self.board[i][col][0] != piece_color:
+                    movelist.append(Move((row, col), (i, col), self.board))
+                if self.board[i][col] != '**':  # the rook can not jump over pieces
+                    break
+        if row - 1 >= 0:  # rook can move up the board
+            for i in range(row - 1, -1, -1):
+                if self.board[i][col][0] != piece_color:
+                    movelist.append(Move((row, col), (i, col), self.board))
+                if self.board[i][col] != '**':
+                    break
+        if col + 1 < 8:  # rook can move to the right
+            for i in range(col + 1, len(self.board)):
+                if self.board[row][i][0] != piece_color:
+                    movelist.append(Move((row, col), (row, i), self.board))
+                if self.board[row][i] != '**':
+                    break
+        if col - 1 >= 0:  # rook can move to the left
+            for i in reversed(range(col)):
+                if self.board[row][i][0] != piece_color:
+                    movelist.append(Move((row, col), (row, i), self.board))
+                if self.board[row][i] != '**':
+                    break
 
     def generateKnightMoves(self, row, col, movelist):
         pass
@@ -117,6 +150,7 @@ class Move:
         self.end_row = end[0]
         self.moved_piece = board[self.start_row][self.start_col]  # remember what piece has to be moved
         self.captured_piece = board[self.end_row][self.end_col]  # in case a piece has been captured#
+        self.promote = False
 
     def __eq__(self, other):  # allows comparing two moves
         if isinstance(other, Move):  # makes sure that other is an instance of the class Move

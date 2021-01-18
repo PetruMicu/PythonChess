@@ -49,7 +49,11 @@ def main():
                 # map the cursor position to dimensions needed for the board
                 row = cursorposition[1] // SQ_SIZE
                 col = cursorposition[0] // SQ_SIZE
-                if squareSelected == (row-1, col):  # player clicked the same sq twice
+                if row == 9:  # out of bounds for now
+                    highlight = False
+                    squareSelected = ()
+                    clicks = []
+                elif squareSelected == (row-1, col):  # player clicked the same sq twice
                     # clears the clicks
                     highlight = False
                     squareSelected = ()
