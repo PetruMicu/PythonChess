@@ -39,7 +39,7 @@ class Game:
             self.board[move.end_row][move.end_col] = move.captured_piece  # if no piece captured restores blank
             self.whiteTurn = not self.whiteTurn  # changes player's turn
 
-    def moveForward(selfself):  # maybe add later
+    def moveForward(self):  # maybe add later
         pass
 
     '''
@@ -125,7 +125,33 @@ class Game:
                     break
 
     def generateKnightMoves(self, row, col, movelist):
-        pass
+        piece_color = self.board[row][col][0]
+        for i in range(1, -2, -1):
+            if i == 0:
+                continue
+            end_row = row + i*2
+            end_col = col + i
+            if 0 <= end_row < 8 and 0 <= end_col < 8:
+                if self.board[end_row][end_col][0] != piece_color:
+                    movelist.append(Move((row, col), (end_row, end_col), self.board))
+            end_row = row + i
+            end_col = col + i*2
+            if 0 <= end_row < 8 and 0 <= end_col < 8:
+                if self.board[end_row][end_col][0] != piece_color:
+                    movelist.append(Move((row, col), (end_row, end_col), self.board))
+        for i in range(1, -2, -1):
+            if i == 0:
+                continue
+            end_row = row + i
+            end_col = col - i*2
+            if 0 <= end_row < 8 and 0 <= end_col < 8:
+                if self.board[end_row][end_col][0] != piece_color:
+                    movelist.append(Move((row, col), (end_row, end_col), self.board))
+            end_row = row + i*2
+            end_col = col - i
+            if 0 <= end_row < 8 and 0 <= end_col < 8:
+                if self.board[end_row][end_col][0] != piece_color:
+                    movelist.append(Move((row, col), (end_row, end_col), self.board))
 
     def generateBishopMoves(self, row, col, movelist):
         pass
