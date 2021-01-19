@@ -154,13 +154,52 @@ class Game:
                     movelist.append(Move((row, col), (end_row, end_col), self.board))
 
     def generateBishopMoves(self, row, col, movelist):
-        pass
+        piece_color = self.board[row][col][0]
+        directions = ((-1, -1), (-1, 1), (1, 1), (1, -1))  # 4 diagonals
+        for d in directions:
+            for i in range(1, 8):
+                end_row = row + d[0]*i
+                end_col = col + d[1]*i
+                if 0 <= end_row < 8 and 0 <= end_col < 8:
+                    if self.board[end_row][end_col] == '**':  # empty sq is ok
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                    elif self.board[end_row][end_col][0] != piece_color:  # can't attack own color
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                        break  # piece captured can't go further on this direction
+                    else:
+                        break
+                else:
+                    break  # off the board
 
     def generateQueenMoves(self, row, col, movelist):
-        pass
+        piece_color = self.board[row][col][0]
+        directions = ((-1, -1), (-1, 1), (1, 1), (1, -1), (-1, 0), (0, -1), (1, 0), (0, 1))  # all directions
+        for d in directions:
+            for i in range(1, 8):
+                end_row = row + d[0]*i
+                end_col = col + d[1]*i
+                if 0 <= end_row < 8 and 0 <= end_col < 8:
+                    if self.board[end_row][end_col] == '**':  # empty sq is ok
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                    elif self.board[end_row][end_col][0] != piece_color:  # can't attack own color
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                        break  # piece captured can't go further on this direction
+                    else:
+                        break
+                else:
+                    break  # off the board
 
     def generateKingMoves(self, row, col, movelist):
-        pass
+        piece_color = self.board[row][col][0]
+        directions = ((-1, -1), (-1, 1), (1, 1), (1, -1), (-1, 0), (0, -1), (1, 0), (0, 1))  # all directions
+        for d in directions:
+                end_row = row + d[0]
+                end_col = col + d[1]
+                if 0 <= end_row < 8 and 0 <= end_col < 8:
+                    if self.board[end_row][end_col][0] != piece_color:  # empty sq is ok
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                else:
+                    continue  # off the board
 
 
 """
