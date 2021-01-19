@@ -14,6 +14,12 @@ class Game:
             ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'],
         ])
         self.whiteTurn = True  # white has to move
+        '''Keep track of king's location'''
+        self.whiteKing = (7, 4)
+        self.blackKing = (0, 4)
+        self.check = False
+        self.check_mate = False
+        self.stale_mate = False
         self.moveLog = []  # list of moves that were made
 
     def makeMove(self, move):
@@ -26,7 +32,12 @@ class Game:
                     move.promote = True
             self.board[move.end_row][move.end_col] = move.moved_piece
             self.board[move.start_row][move.start_col] = "**"
-            self.whiteTurn = not self.whiteTurn  # change player's turn
+            if move.moved_piece == 'wK':
+                self.whiteKing = (move.end_row, move.end_col)
+            elif move.moved_piece == 'bK':
+                self.blackKing = (move.end_row, move.end_col)
+            # Check if the move has delivered a check
+            self.whiteTurn = not self.whiteTurn
             self.moveLog.append(move)
         # else does nothing
 
@@ -37,6 +48,10 @@ class Game:
                 move.moved_piece = move.moved_piece[0] + 'P'
             self.board[move.start_row][move.start_col] = move.moved_piece
             self.board[move.end_row][move.end_col] = move.captured_piece  # if no piece captured restores blank
+            if move.moved_piece == 'wK':
+                self.whiteKing = (move.start_row, move.start_col)
+            elif move.moved_piece == 'bK':
+                self.blackKing = (move.start_row, move.start_col)
             self.whiteTurn = not self.whiteTurn  # changes player's turn
 
     def moveForward(self):  # maybe add later
@@ -47,7 +62,48 @@ class Game:
     that generates all possible moves considering the rules for each piece
     '''
     def getValidMoves(self):
-        return self.generateMoves()
+        all_moves = self.generateMoves()
+        for i in range(len(all_moves)-1, -1, -1):  # go through the list backwards
+            # make this current move
+            self.makeMove(all_moves[i])
+            # change turn to check if in check
+            self.whiteTurn = not self.whiteTurn
+            # if in check then remove this move and then undo the move
+            if self.kingUnderAttack():
+                all_moves.remove(all_moves[i])
+            self.whiteTurn = not self.whiteTurn
+            self.moveBack()
+        if len(all_moves) == 0:
+            if self.kingUnderAttack():
+                self.check_mate = True
+            else:
+                self.stale_mate = False
+        else:
+            self.check_mate = False
+            self.stale_mate = False
+        return all_moves
+
+
+    def kingUnderAttack(self):
+        # generate all opponent's moves
+        row = 0
+        col = 0
+        if self.whiteTurn:
+            row = self.whiteKing[0]
+            col = self.whiteKing[1]
+        elif not self.whiteTurn:
+            row = self.blackKing[0]
+            col = self.blackKing[1]
+        self.whiteTurn = not self.whiteTurn
+        opponent_moves = self.generateMoves()
+        for move in opponent_moves:
+            if move.end_row == row and move.end_col == col:
+                self.whiteTurn = not self.whiteTurn
+                return True
+        self.whiteTurn = not self.whiteTurn
+        return False
+
+
 
     def generateMoves(self):
         movelist = []  # list containing the possible moves
@@ -92,7 +148,7 @@ class Game:
             if self.board[row + value][col - 1] != '**' and self.board[row + value][col - 1][0] != piece_color:  # pawn can capture a piece to it's left
                 movelist.append(Move((row, col), (row + value, col - 1), self.board))
         if col != 7:
-            if self.board[row + value][col + 1] != '**' and self.board[row + value][col - 1][0] != piece_color:  # pawn can capture a piece to it's right
+            if self.board[row + value][col + 1] != '**' and self.board[row + value][col + 1][0] != piece_color:  # pawn can capture a piece to it's right
                 movelist.append(Move((row, col), (row + value, col + 1), self.board))
             # do en passant move later if there's time left
 
@@ -154,13 +210,53 @@ class Game:
                     movelist.append(Move((row, col), (end_row, end_col), self.board))
 
     def generateBishopMoves(self, row, col, movelist):
-        pass
+        piece_color = self.board[row][col][0]
+        directions = ((-1, -1), (-1, 1), (1, 1), (1, -1))  # 4 diagonals
+        for d in directions:
+            for i in range(1, 8):
+                end_row = row + d[0]*i
+                end_col = col + d[1]*i
+                if 0 <= end_row < 8 and 0 <= end_col < 8:
+                    if self.board[end_row][end_col] == '**':  # empty sq is ok
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                    elif self.board[end_row][end_col][0] != piece_color:  # can't attack own color
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                        break  # piece captured can't go further on this direction
+                    else:
+                        break
+                else:
+                    break  # off the board
+
 
     def generateQueenMoves(self, row, col, movelist):
-        pass
+        piece_color = self.board[row][col][0]
+        directions = ((-1, -1), (-1, 1), (1, 1), (1, -1), (-1, 0), (0, -1), (1, 0), (0, 1))  # all directions
+        for d in directions:
+            for i in range(1, 8):
+                end_row = row + d[0]*i
+                end_col = col + d[1]*i
+                if 0 <= end_row < 8 and 0 <= end_col < 8:
+                    if self.board[end_row][end_col] == '**':  # empty sq is ok
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                    elif self.board[end_row][end_col][0] != piece_color:  # can't attack own color
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                        break  # piece captured can't go further on this direction
+                    else:
+                        break
+                else:
+                    break  # off the board
 
     def generateKingMoves(self, row, col, movelist):
-        pass
+        piece_color = self.board[row][col][0]
+        directions = ((-1, -1), (-1, 1), (1, 1), (1, -1), (-1, 0), (0, -1), (1, 0), (0, 1))  # all directions
+        for d in directions:
+                end_row = row + d[0]
+                end_col = col + d[1]
+                if 0 <= end_row < 8 and 0 <= end_col < 8:
+                    if self.board[end_row][end_col][0] != piece_color:  # empty sq is ok
+                        movelist.append(Move((row, col), (end_row, end_col), self.board))
+                else:
+                    continue  # off the board
 
 
 """
