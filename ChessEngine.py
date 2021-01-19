@@ -53,6 +53,8 @@ class Game:
             elif move.moved_piece == 'bK':
                 self.blackKing = (move.start_row, move.start_col)
             self.whiteTurn = not self.whiteTurn  # changes player's turn
+            self.check_mate = False
+            self.stale_mate = False
 
     def moveForward(self):  # maybe add later
         pass
@@ -77,7 +79,7 @@ class Game:
             if self.kingUnderAttack():
                 self.check_mate = True
             else:
-                self.stale_mate = False
+                self.stale_mate = True
         else:
             self.check_mate = False
             self.stale_mate = False

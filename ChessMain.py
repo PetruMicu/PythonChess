@@ -1,4 +1,5 @@
 import pygame as p
+import time as time
 import ChessEngine
 
 """
@@ -18,6 +19,7 @@ colors = [p.Color(255, 218, 185, 255), p.Color(60, 179, 113, 255)]
 check_color = p.Color(255, 77, 77, 155)
 IMG = {}  # dictionary containing the images
 highlight_colors = [p.Color(244, 241, 174, 155), p.Color(173, 227, 156, 155)]
+p.init()
 
 def loadIMG():
     pieces = ('bR', 'bN', 'bB', 'bQ', 'bK', 'bP', 'wR', 'wN', 'wB', 'wQ', 'wK', 'wP')
@@ -27,8 +29,8 @@ def loadIMG():
 
 
 def main():
-    p.init()
     window = p.display.set_mode((W_WIDTH, W_HEIGHT))
+    p.display.set_caption('Python Chess')
     time = p.time.Clock()
     window.fill(p.Color("black"))
     gamestate = ChessEngine.Game()
@@ -86,7 +88,8 @@ def main():
                 highlight = False
                 clicks = []
                 squareSelected = []
-
+        if gamestate.check_mate or gamestate.stale_mate:
+            drawWinner(window, gamestate)
         if move_made:
             validMoves = gamestate.getValidMoves()
         drawBoard(window, gamestate, highlight, col, row-1)
@@ -95,6 +98,8 @@ def main():
 
 
 def drawBoard(window, gamestate, highlight, highlight_col, highlight_row):
+    if not gamestate.check_mate and not gamestate.stale_mate:
+        p.draw.rect(window, "black", p.Rect(0, 0, WIDTH, SQ_SIZE))
     for i in range(BOARD_SIZE):
         for j in range(BOARD_SIZE):
             if highlight_row == i and highlight_col == j and highlight and gamestate.board[i][j] != "**":
@@ -111,6 +116,21 @@ def drawBoard(window, gamestate, highlight, highlight_col, highlight_row):
                 window.blit(IMG[gamestate.board[i][j]], p.Rect(j*SQ_SIZE, (i+1)*SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 
+def drawWinner(window, gamestate):
+    winner = '**'
+    text = 0
+    font = p.font.Font('freesansbold.ttf', 32)
+    if gamestate.check_mate:
+        if gamestate.whiteTurn:
+            winner = "Black"
+        else:
+            winner = "White"
+        text = font.render('Winner is ' + winner + '!', True, "white", "black")
+    elif gamestate.stale_mate:
+        winner = '*'
+        text = font.render('Stale Mate!', True, "white", "black")
+    textRect = text.get_rect()
+    window.blit(text, textRect)
 
 if __name__ == '__main__':
     main()
